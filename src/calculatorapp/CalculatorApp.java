@@ -82,13 +82,9 @@ public class CalculatorApp extends JFrame
         menuBar.add(calculatorMenu);
         setMenuBar(menuBar);
     }
-    
-    /*private void removeAllComponents() {
-        removeAll();
-    }*/
-    
+
     private void removeAllComponents() {
-        removeAll();
+        getContentPane().removeAll();
     }
 
 
