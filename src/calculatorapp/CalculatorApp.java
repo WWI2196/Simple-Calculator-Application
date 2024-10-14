@@ -2,7 +2,7 @@ package calculatorapp;
 
 import java.awt.*;  
 import java.awt.event.*;  
-import javax.swing.*; // For JMenuBar, JMenu, JMenuItem, JRadioButton, etc.
+import javax.swing.*;
 
 public class CalculatorApp extends JFrame  
 {  
@@ -10,11 +10,12 @@ public class CalculatorApp extends JFrame
     double number, memValue;  
     char op;  
     boolean isSimpleCalculator = true;
+    boolean lastActionWasOperation = false;
 
-    String digitButtonText[] = {"7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "+/-", "." };  
-    String operatorButtonText[] = {"/", "sqrt", "*", "%", "-", "1/X", "+", "=" };  
-    String memoryButtonText[] = {"MC", "MR", "MS", "M+" };  
-    String specialButtonText[] = {"Backspc", "C", "CE" };  
+    String digitButtonText[] = {"7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "." };  
+    String operatorButtonText[] = {"/", "sqrt", "*", "-", "+", "=" };  
+    String memoryButtonText[] = {"MC", "M", "M-", "M+" };  
+    String specialButtonText[] = {"C", "CE" };  
   
     MyDigitButton digitButton[] = new MyDigitButton[digitButtonText.length];  
     MyOperatorButton operatorButton[] = new MyOperatorButton[operatorButtonText.length];  
@@ -24,7 +25,7 @@ public class CalculatorApp extends JFrame
     Label displayLabel = new Label("0", Label.RIGHT);  
     Label memLabel = new Label(" ", Label.RIGHT);  
 
-    // Programming calculator components
+    // for programming calculator components and buttons
     JRadioButton binaryButton = new JRadioButton("Binary");
     JRadioButton octalButton = new JRadioButton("Octal");
     JRadioButton decimalButton = new JRadioButton("Decimal");
@@ -34,10 +35,11 @@ public class CalculatorApp extends JFrame
     String hexDigitButtonText[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
     MyDigitButton hexDigitButton[] = new MyDigitButton[hexDigitButtonText.length];
 
-    final int FRAME_WIDTH = 500, FRAME_HEIGHT = 525;  
+    final int FRAME_WIDTH = 500, FRAME_HEIGHT = 600;  
     final int HEIGHT = 30, WIDTH = 30, H_SPACE = 10, V_SPACE = 10;  
     final int TOPX = 30, TOPY = 50;
 
+    //set the window for the calculator application
     public CalculatorApp(String frameText)  
     {  
         super(frameText);  
@@ -54,7 +56,7 @@ public class CalculatorApp extends JFrame
     }
     
 
-    // Create the menu bar to switch between calculators
+    // menu bar to switch between simple calculator and programmable calculator
     private void createMenuBar() {
         MenuBar menuBar = new MenuBar();
         Menu calculatorMenu = new Menu("Calculator Menu");
@@ -83,12 +85,13 @@ public class CalculatorApp extends JFrame
         setMenuBar(menuBar);
     }
 
+    // to set the components for the simple and programmable calcutotors by removing unwanted buttons
     private void removeAllComponents() {
         getContentPane().removeAll();
     }
 
 
-    // Simple Calculator components
+    // add the butttons and componenets needed for the simple calculator 
     private void addSimpleCalculatorComponents() {
         JPanel mainPanel = new JPanel(null);
         mainPanel.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
@@ -101,17 +104,18 @@ public class CalculatorApp extends JFrame
         memLabel.setBounds(TOPX, TOPY + HEIGHT + V_SPACE, WIDTH, HEIGHT);  
         mainPanel.add(memLabel);  
 
-        // Memory Buttons  
+        // for memory buttons  
         int tempX = TOPX, y = TOPY + 2 * (HEIGHT + V_SPACE);  
         for (int i = 0; i < memoryButton.length; i++)  
         {  
-            memoryButton[i] = new MyMemoryButton(tempX, y, WIDTH, HEIGHT, memoryButtonText[i], this);  
-            memoryButton[i].setForeground(Color.RED);  
+            memoryButton[i] = new MyMemoryButton(tempX, y, WIDTH, HEIGHT, memoryButtonText[i], this);
+            memoryButton[i].setBackground(Color.BLUE);
+            memoryButton[i].setForeground(Color.WHITE);  
             mainPanel.add(memoryButton[i]);
             y += HEIGHT + V_SPACE;  
         }
 
-        // Special Buttons  
+        // for special Buttons (C & CE)  
         tempX = TOPX + 1 * (WIDTH + H_SPACE);  
         y = TOPY + 1 * (HEIGHT + V_SPACE);  
         for (int i = 0; i < specialButton.length; i++)  
@@ -122,7 +126,7 @@ public class CalculatorApp extends JFrame
             tempX = tempX + 2 * WIDTH + H_SPACE;  
         }
 
-        // Digit Buttons  
+        // for number buttons 
         int digitX = TOPX + WIDTH + H_SPACE;  
         int digitY = TOPY + 2 * (HEIGHT + V_SPACE);  
         tempX = digitX;  
@@ -136,7 +140,7 @@ public class CalculatorApp extends JFrame
             if ((i + 1) % 3 == 0) { tempX = digitX; y += HEIGHT + V_SPACE; }  
         }  
   
-        // Operator Buttons  
+        // for operator buttons  
         int opsX = digitX + 2 * (WIDTH + H_SPACE) + H_SPACE;  
         int opsY = digitY;  
         tempX = opsX;  
@@ -152,8 +156,27 @@ public class CalculatorApp extends JFrame
 
         add(mainPanel, BorderLayout.CENTER);
     }
+    
+    // method to check for consecutive operations
+     boolean isConsecutiveOperation(String operation) {
+        if (lastActionWasOperation) {
+            if (operation.equals("-")) {
+                // Allow minus after an operation for negative numbers
+                displayLabel.setText(displayLabel.getText() + operation);
+                lastActionWasOperation = false;
+                return true;
+            } else if (!operation.equals("=")) {
+                displayLabel.setText("Error");
+                setClear = true;
+                lastActionWasOperation = false;
+                return true;
+            }
+        }
+        lastActionWasOperation = !operation.equals("=");
+        return false;
+    }
 
-    // Programming Calculator components
+    // to set programming calculator components
     private void addProgrammingCalculatorComponents() {
         JPanel mainPanel = new JPanel(null);
         mainPanel.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
@@ -163,7 +186,7 @@ public class CalculatorApp extends JFrame
         displayLabel.setForeground(Color.BLACK);  
         mainPanel.add(displayLabel);
 
-        // Base selection radio buttons
+        // for the selection radio buttons
         JPanel basePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         basePanel.setBounds(TOPX, TOPY + HEIGHT + V_SPACE, 440, HEIGHT);
         basePanel.add(binaryButton);
@@ -177,19 +200,19 @@ public class CalculatorApp extends JFrame
         decimalButton.setSelected(true);
         mainPanel.add(basePanel);
 
-        // Add action listeners to radio buttons
+        // action listeners to radio buttons
         ActionListener baseListener = e -> updateEnabledButtons();
         binaryButton.addActionListener(baseListener);
         octalButton.addActionListener(baseListener);
         decimalButton.addActionListener(baseListener);
         hexButton.addActionListener(baseListener);
 
-        // Conversion area
+        // conversion area
         conversionArea.setBounds(TOPX, TOPY + 2 * (HEIGHT + V_SPACE), 440, 100);
         conversionArea.setEditable(false);
         mainPanel.add(conversionArea);
 
-        // Digit Buttons for Hexadecimal support (0-9, A-F)
+        // buttons for hexadecimal digits
         int tempX = TOPX, y = TOPY + 3 * (HEIGHT + V_SPACE) + 100;
         for (int i = 0; i < hexDigitButtonText.length; i++)  
         {  
@@ -200,7 +223,7 @@ public class CalculatorApp extends JFrame
             if ((i + 1) % 4 == 0) { tempX = TOPX; y += HEIGHT + V_SPACE; }  
         }  
         
-        // Operator Buttons for + and *
+        // operator buttons for + and *
         y += HEIGHT + V_SPACE;
         operatorButton[0] = new MyOperatorButton(TOPX, y, WIDTH, HEIGHT, "+", this);  
         operatorButton[1] = new MyOperatorButton(TOPX + WIDTH + H_SPACE, y, WIDTH, HEIGHT, "*", this);  
@@ -224,7 +247,7 @@ public class CalculatorApp extends JFrame
         }
     }
     
-    // Move these methods inside the CalculatorApp class
+    // display the number converstion in the converstion area
     public void displayConversions(String value) {
         try {
             int base = getSelectedBase();
@@ -241,7 +264,7 @@ public class CalculatorApp extends JFrame
         }
     }
 
-    // Function to get the base selected by the radio buttons
+    // function to get the option selected by the radio buttons
     int getSelectedBase() {
         if (binaryButton.isSelected()) return 2;
         if (octalButton.isSelected()) return 8;
@@ -251,7 +274,7 @@ public class CalculatorApp extends JFrame
     }
 
 
-    // Format output
+    // set the output text
     static String getFormattedText(double temp)  
     {  
         String resText = "" + temp;  
@@ -266,9 +289,8 @@ public class CalculatorApp extends JFrame
     }  
 }
 
-/*******************************************/  
 
-// Digit Button Class  
+// class to execute the number buttons pressed 
 class MyDigitButton extends Button implements ActionListener  
 {  
     CalculatorApp cl;  
@@ -299,9 +321,8 @@ class MyDigitButton extends Button implements ActionListener
     }  
 }
 
-/*******************************************/  
 
-// Operator Button Class  
+// class to execute the operator buttons pressed   
 class MyOperatorButton extends Button implements ActionListener  
 {  
     CalculatorApp cl;  
@@ -313,11 +334,16 @@ class MyOperatorButton extends Button implements ActionListener
         this.cl = clc;  
         this.cl.add(this);  
         addActionListener(this);  
-    }  
+    }    
 
-    public void actionPerformed(ActionEvent ev)  
+     public void actionPerformed(ActionEvent ev)  
     {  
         String opText = ((MyOperatorButton) ev.getSource()).getLabel();  
+        
+        if (cl.isConsecutiveOperation(opText)) {
+            return;
+        }
+
         cl.setClear = true;  
 
         if (cl.isSimpleCalculator) {
@@ -329,18 +355,7 @@ class MyOperatorButton extends Button implements ActionListener
 
     private void handleSimpleCalculator(String opText) {
         double temp = Double.parseDouble(cl.displayLabel.getText());  
-
-        if (opText.equals("1/x"))  
-        {  
-            try { 
-                double tempd = 1 / temp; 
-                cl.displayLabel.setText(CalculatorApp.getFormattedText(tempd)); 
-            }  
-            catch (ArithmeticException excp) { 
-                cl.displayLabel.setText("Divide by 0."); 
-            }  
-            return;  
-        }  
+ 
         if (opText.equals("sqrt"))  
         {  
             try { 
@@ -348,7 +363,7 @@ class MyOperatorButton extends Button implements ActionListener
                 cl.displayLabel.setText(CalculatorApp.getFormattedText(tempd)); 
             }  
             catch (ArithmeticException excp) { 
-                cl.displayLabel.setText("Invalid input for sqrt."); 
+                cl.displayLabel.setText("Error"); 
             }  
             return;  
         }  
@@ -358,25 +373,24 @@ class MyOperatorButton extends Button implements ActionListener
             cl.number = temp;  
             cl.op = opText.charAt(0);  
             return;  
-        }  
+        }     
 
-        switch (cl.op)  
+         switch (cl.op)  
         {  
             case '+': temp += cl.number; break;  
             case '-': temp = cl.number - temp; break;  
             case '*': temp *= cl.number; break;  
-            case '%':  
-                try { temp = cl.number % temp; }  
-                catch (ArithmeticException excp) { cl.displayLabel.setText("Divide by 0."); return; }  
-                break;  
             case '/':  
-                try { temp = cl.number / temp; }  
-                catch (ArithmeticException excp) { cl.displayLabel.setText("Divide by 0."); return; }  
+                try { 
+                    if (temp == 0) throw new ArithmeticException();
+                    temp = cl.number / temp; 
+                }  
+                catch (ArithmeticException excp) { cl.displayLabel.setText("Error"); return; }  
                 break;  
-        }  
-        cl.displayLabel.setText(CalculatorApp.getFormattedText(temp));  
+        }
+        cl.displayLabel.setText(CalculatorApp.getFormattedText(temp)); 
     }
-
+    
     private void handleProgrammableCalculator(String opText) {
     if (opText.equals("=")) {
         calculate();
@@ -417,12 +431,11 @@ class MyOperatorButton extends Button implements ActionListener
     }
 }
 
-/*******************************************/  
-
-// Memory Button Class  
+// class to execute the memory buttons pressed 
 class MyMemoryButton extends Button implements ActionListener  
 {  
     CalculatorApp cl;  
+    private boolean lastActionWasMemory = false;
   
     MyMemoryButton(int x, int y, int width, int height, String cap, CalculatorApp clc)  
     {  
@@ -433,10 +446,17 @@ class MyMemoryButton extends Button implements ActionListener
         addActionListener(this);  
     }  
 
-    // Handle Memory Button Action  
     public void actionPerformed(ActionEvent ev)  
     {  
         String memOp = ((MyMemoryButton) ev.getSource()).getLabel();  
+        
+        if (lastActionWasMemory && (memOp.equals("M+") || memOp.equals("M-"))) {
+            cl.displayLabel.setText("Error");
+            cl.setClear = true;
+            lastActionWasMemory = false;
+            return;
+        }
+
         double currentValue = Double.parseDouble(cl.displayLabel.getText());  
 
         switch (memOp) {  
@@ -458,12 +478,12 @@ class MyMemoryButton extends Button implements ActionListener
                 cl.displayLabel.setText(CalculatorApp.getFormattedText(cl.memValue));  
                 break;  
         }  
+
+        lastActionWasMemory = memOp.equals("M+") || memOp.equals("M-");
     }  
 }
 
-/*******************************************/  
-
-// Special Button Class  
+// class to execute the special buttons pressed  
 class MySpecialButton extends Button implements ActionListener  
 {  
     CalculatorApp cl;  
@@ -480,23 +500,14 @@ class MySpecialButton extends Button implements ActionListener
     public void actionPerformed(ActionEvent ev)  
     {  
         String opText = ((MySpecialButton) ev.getSource()).getLabel();  
-
-        if (opText.equals("Backspc")) {
-            String tempText = cl.displayLabel.getText();
-            if (tempText.length() > 0) {
-                tempText = tempText.substring(0, tempText.length() - 1);
-                if (tempText.isEmpty()) tempText = "0";
-                cl.displayLabel.setText(tempText);
-                if (!cl.isSimpleCalculator) {
-                    cl.displayConversions(tempText);
-                }
-            }
-        } else if (opText.equals("C") || opText.equals("CE")) {
+        if (opText.equals("C") || opText.equals("CE")) {
             cl.displayLabel.setText("0");
             cl.setClear = true;
             if (!cl.isSimpleCalculator) {
                 cl.displayConversions("0");
             }
         }
+    
     }
 }
+
