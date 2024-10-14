@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.event.*;  
 import javax.swing.*; // For JMenuBar, JMenu, JMenuItem, JRadioButton, etc.
 
-public class CalculatorApp extends Frame  
+public class CalculatorApp extends JFrame  
 {  
     public boolean setClear = true;  
     double number, memValue;  
@@ -40,15 +40,19 @@ public class CalculatorApp extends Frame
 
     public CalculatorApp(String frameText)  
     {  
-         super(frameText);  
+        super(frameText);  
 
-        setLayout(null);  
-        setSize(FRAME_WIDTH, FRAME_HEIGHT);  
-        setVisible(true);  
-
+        setLayout(new BorderLayout());
+        setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
         createMenuBar();
         addSimpleCalculatorComponents();
+
+        setVisible(true);  
     }
+    
 
     // Create the menu bar to switch between calculators
     private void createMenuBar() {
@@ -79,19 +83,27 @@ public class CalculatorApp extends Frame
         setMenuBar(menuBar);
     }
     
+    /*private void removeAllComponents() {
+        removeAll();
+    }*/
+    
     private void removeAllComponents() {
         removeAll();
     }
 
+
     // Simple Calculator components
     private void addSimpleCalculatorComponents() {
+        JPanel mainPanel = new JPanel(null);
+        mainPanel.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
+
         displayLabel.setBounds(TOPX, TOPY, 240, HEIGHT);
         displayLabel.setBackground(Color.LIGHT_GRAY);  
         displayLabel.setForeground(Color.WHITE);  
-        add(displayLabel);  
+        mainPanel.add(displayLabel);  
 
         memLabel.setBounds(TOPX, TOPY + HEIGHT + V_SPACE, WIDTH, HEIGHT);  
-        add(memLabel);  
+        mainPanel.add(memLabel);  
 
         // Memory Buttons  
         int tempX = TOPX, y = TOPY + 2 * (HEIGHT + V_SPACE);  
@@ -99,6 +111,7 @@ public class CalculatorApp extends Frame
         {  
             memoryButton[i] = new MyMemoryButton(tempX, y, WIDTH, HEIGHT, memoryButtonText[i], this);  
             memoryButton[i].setForeground(Color.RED);  
+            mainPanel.add(memoryButton[i]);
             y += HEIGHT + V_SPACE;  
         }
 
@@ -109,6 +122,7 @@ public class CalculatorApp extends Frame
         {  
             specialButton[i] = new MySpecialButton(tempX, y, WIDTH * 2, HEIGHT, specialButtonText[i], this);  
             specialButton[i].setForeground(Color.RED);  
+            mainPanel.add(specialButton[i]);
             tempX = tempX + 2 * WIDTH + H_SPACE;  
         }
 
@@ -121,6 +135,7 @@ public class CalculatorApp extends Frame
         {  
             digitButton[i] = new MyDigitButton(tempX, y, WIDTH, HEIGHT, digitButtonText[i], this);  
             digitButton[i].setForeground(Color.BLUE);  
+            mainPanel.add(digitButton[i]);
             tempX += WIDTH + H_SPACE;  
             if ((i + 1) % 3 == 0) { tempX = digitX; y += HEIGHT + V_SPACE; }  
         }  
@@ -135,31 +150,36 @@ public class CalculatorApp extends Frame
             tempX += WIDTH + H_SPACE;  
             operatorButton[i] = new MyOperatorButton(tempX, y, WIDTH, HEIGHT, operatorButtonText[i], this);  
             operatorButton[i].setForeground(Color.RED);  
+            mainPanel.add(operatorButton[i]);
             if ((i + 1) % 2 == 0) { tempX = opsX; y += HEIGHT + V_SPACE; }  
         }
+
+        add(mainPanel, BorderLayout.CENTER);
     }
 
     // Programming Calculator components
     private void addProgrammingCalculatorComponents() {
-        displayLabel.setBounds(TOPX, TOPY, 240, HEIGHT);
+        JPanel mainPanel = new JPanel(null);
+        mainPanel.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
+
+        displayLabel.setBounds(TOPX, TOPY, 440, HEIGHT);
         displayLabel.setBackground(Color.LIGHT_GRAY);  
         displayLabel.setForeground(Color.BLACK);  
-        add(displayLabel);
+        mainPanel.add(displayLabel);
 
         // Base selection radio buttons
-        binaryButton.setBounds(TOPX, TOPY + HEIGHT + V_SPACE, 100, HEIGHT);  
-        octalButton.setBounds(TOPX + 110, TOPY + HEIGHT + V_SPACE, 100, HEIGHT);  
-        decimalButton.setBounds(TOPX + 220, TOPY + HEIGHT + V_SPACE, 100, HEIGHT);  
-        hexButton.setBounds(TOPX + 330, TOPY + HEIGHT + V_SPACE, 100, HEIGHT);  
+        JPanel basePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        basePanel.setBounds(TOPX, TOPY + HEIGHT + V_SPACE, 440, HEIGHT);
+        basePanel.add(binaryButton);
+        basePanel.add(octalButton);
+        basePanel.add(decimalButton);
+        basePanel.add(hexButton);
         baseGroup.add(binaryButton);  
         baseGroup.add(octalButton);  
         baseGroup.add(decimalButton);  
         baseGroup.add(hexButton);  
         decimalButton.setSelected(true);
-        add(binaryButton);  
-        add(octalButton);  
-        add(decimalButton);  
-        add(hexButton);
+        mainPanel.add(basePanel);
 
         // Add action listeners to radio buttons
         ActionListener baseListener = e -> updateEnabledButtons();
@@ -171,31 +191,34 @@ public class CalculatorApp extends Frame
         // Conversion area
         conversionArea.setBounds(TOPX, TOPY + 2 * (HEIGHT + V_SPACE), 440, 100);
         conversionArea.setEditable(false);
-        add(conversionArea);
+        mainPanel.add(conversionArea);
 
         // Digit Buttons for Hexadecimal support (0-9, A-F)
-        int tempX = TOPX, y = TOPY + 4 * (HEIGHT + V_SPACE);
+        int tempX = TOPX, y = TOPY + 3 * (HEIGHT + V_SPACE) + 100;
         for (int i = 0; i < hexDigitButtonText.length; i++)  
         {  
             hexDigitButton[i] = new MyDigitButton(tempX, y, WIDTH, HEIGHT, hexDigitButtonText[i], this);  
             hexDigitButton[i].setForeground(Color.BLUE);  
+            mainPanel.add(hexDigitButton[i]);
             tempX += WIDTH + H_SPACE;  
             if ((i + 1) % 4 == 0) { tempX = TOPX; y += HEIGHT + V_SPACE; }  
         }  
         
         // Operator Buttons for + and *
+        y += HEIGHT + V_SPACE;
         operatorButton[0] = new MyOperatorButton(TOPX, y, WIDTH, HEIGHT, "+", this);  
         operatorButton[1] = new MyOperatorButton(TOPX + WIDTH + H_SPACE, y, WIDTH, HEIGHT, "*", this);  
-        add(operatorButton[0]);
-        add(operatorButton[1]);
+        mainPanel.add(operatorButton[0]);
+        mainPanel.add(operatorButton[1]);
 
         // CL and = buttons
         specialButton[0] = new MySpecialButton(TOPX + 2 * (WIDTH + H_SPACE), y, WIDTH, HEIGHT, "CL", this);
         operatorButton[2] = new MyOperatorButton(TOPX + 3 * (WIDTH + H_SPACE), y, WIDTH, HEIGHT, "=", this);
-        add(specialButton[0]);
-        add(operatorButton[2]);
+        mainPanel.add(specialButton[0]);
+        mainPanel.add(operatorButton[2]);
 
         updateEnabledButtons();
+        add(mainPanel, BorderLayout.CENTER);
     }
     
     private void updateEnabledButtons() {
@@ -243,7 +266,7 @@ public class CalculatorApp extends Frame
 
     public static void main(String[] args)  
     {  
-        new CalculatorApp("Calculator - Java");  
+        SwingUtilities.invokeLater(() -> new CalculatorApp("Calculator - Java"));  
     }  
 }
 
